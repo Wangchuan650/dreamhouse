@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#101c36" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="门没锁，灯给你留着。一个可以随时回来坐一会儿的温馨小屋。"
+    />
+    <title>门没锁，灯给你留着</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231b2a4a'/%3E%3Cpath d='M13 31 32 15l19 16v19H13z' fill='%23b77b48'/%3E%3Crect x='26' y='34' width='12' height='16' rx='2' fill='%23ffb86b'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <main id="app" class="app is-loading">
+      <canvas id="stage" aria-label="夜晚的小木屋，屋里有床、桌子和一只小兔子" tabindex="-1"></canvas>
+
+      <div class="scene-wash" aria-hidden="true"></div>
+      <div class="scene-vignette" aria-hidden="true"></div>
+      <div id="wake-glow" class="wake-glow" aria-hidden="true"></div>
+      <div id="edge-glow" class="edge-glow" aria-hidden="true"></div>
+
+      <div id="scene-hint" class="scene-hint" aria-hidden="true">
+        <span class="scene-hint__dot"></span>
+        <span>屋里屋外，都可以轻轻碰一碰</span>
+      </div>
+
+      <header id="hud" class="hud" aria-label="小屋顶部操作">
+        <div class="hud__side">
+          <button
+            id="shallow-btn"
+            class="icon-btn shallow-btn"
+            type="button"
+            aria-label="浅眠"
+            aria-pressed="false"
+            title="浅眠"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M15.8 3.9a7.7 7.7 0 1 0 4.3 11.8A8.7 8.7 0 0 1 15.8 3.9Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M16.7 7.2c.35 1.2.95 1.8 2.15 2.15-1.2.35-1.8.95-2.15 2.15-.35-1.2-.95-1.8-2.15-2.15 1.2-.35 1.8-.95 2.15-2.15Z" fill="currentColor" opacity=".55"/>
+            </svg>
+            <span class="sr-only">浅眠</span>
+          </button>
+        </div>
+
+        <div class="hud__side hud__side--right">
+          <button
+            id="sound-btn"
+            class="icon-btn"
+            type="button"
+            aria-label="静音"
+            aria-pressed="false"
+            title="静音"
+          >
+            <svg class="icon-sound" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4.5 9.4h3.1l4-3.2c.7-.55 1.7-.06 1.7.83v9.94c0 .89-1 1.38-1.7.83l-4-3.2H4.5a1 1 0 0 1-1-1v-3.2a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M16.2 9.1a4.4 4.4 0 0 1 0 5.8M18.7 6.9a7.6 7.6 0 0 1 0 10.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <svg class="icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4.5 9.4h3.1l4-3.2c.7-.55 1.7-.06 1.7.83v9.94c0 .89-1 1.38-1.7.83l-4-3.2H4.5a1 1 0 0 1-1-1v-3.2a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="m16.1 9.8 4.4 4.4M20.5 9.8l-4.4 4.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span class="sr-only">静音</span>
+          </button>
+
+          <button
+            id="settings-btn"
+            class="icon-btn"
+            type="button"
+            aria-label="设置"
+            title="设置"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10.2 3.6c.14-.8.84-1.36 1.65-1.36h.3c.8 0 1.5.56 1.65 1.36l.21 1.2c.45.2.87.47 1.25.8l1.17-.37c.76-.24 1.58.15 1.9.86l.14.3c.33.7.13 1.54-.5 2l-.97.72c.03.25.05.5.05.75s-.02.5-.05.75l.97.72c.63.46.83 1.3.5 2l-.14.3c-.32.71-1.14 1.1-1.9.86l-1.17-.37c-.38.33-.8.6-1.25.8l-.21 1.2c-.14.8-.84 1.36-1.65 1.36h-.3c-.8 0-1.5-.56-1.65-1.36l-.21-1.2a7.8 7.8 0 0 1-1.25-.8l-1.17.37c-.76.24-1.58-.15-1.9-.86l-.14-.3c-.33-.7-.13-1.54.5-2l.97-.72A6.5 6.5 0 0 1 5.9 10c0-.25.02-.5.05-.75l-.97-.72c-.63-.46-.83-1.3-.5-2l.14-.3c.32-.71 1.14-1.1 1.9-.86l1.17.37c.38-.33.8-.6 1.25-.8l.21-1.2Z" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/>
+              <circle cx="12" cy="10.2" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            <span class="sr-only">设置</span>
+          </button>
+
+          <button
+            id="exit-btn"
+            class="icon-btn exit-btn"
+            type="button"
+            aria-label="离开小屋"
+            title="离开小屋"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 20V5.6c0-.5.36-.93.86-1.02l8-1.45c.6-.1 1.14.35 1.14.96V20" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+              <path d="M3.5 20.2h17" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              <circle cx="12.4" cy="12.2" r=".8" fill="currentColor"/>
+              <path d="M16.2 10.3a2.1 2.1 0 1 1 2 3.2 2.6 2.6 0 0 1-2-1" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".65"/>
+            </svg>
+            <span class="sr-only">离开小屋</span>
+          </button>
+        </div>
+      </header>
+
+      <section id="shallow-layer" class="shallow-layer" aria-hidden="true">
+        <div class="shallow-layer__veil"></div>
+        <div class="shallow-core">
+          <div id="breath-orb" class="breath-orb" aria-hidden="true"></div>
+          <p class="shallow-copy">跟着光点慢慢呼吸，不跟着也行。</p>
+          <div class="shallow-actions">
+            <button id="breath-toggle" class="shallow-mini" type="button">隐藏光点</button>
+            <button id="shallow-sound" class="shallow-mini" type="button">选个声音</button>
+          </div>
+          <label class="shallow-volume">
+            <span>音量</span>
+            <input id="shallow-volume" type="range" min="0" max="100" step="1" value="30" />
+            <b id="shallow-volume-value">30%</b>
+          </label>
+        </div>
+      </section>
+      <button id="shallow-exit" class="shallow-exit" type="button">退出浅眠</button>
+
+      <div id="hotspots" class="hotspots" aria-live="polite"></div>
+
+      <div id="joystick" class="joystick" aria-label="移动摇杆">
+        <div class="joystick__ring">
+          <span class="joystick__knob" id="joystick-knob"></span>
+        </div>
+        <span class="joystick__label">走一走</span>
+      </div>
+
+      <button id="activity-exit" class="activity-exit" type="button">结束</button>
+      <button id="meteor-btn" class="meteor-btn" type="button" aria-label="召唤一颗流星">
+        <span aria-hidden="true">✦</span> 看流星
+      </button>
+      <button id="context-action" class="context-action" type="button">
+        <span id="context-action-text">看看</span>
+        <kbd>E</kbd>
+      </button>
+
+      <div id="toast" class="toast" role="status" aria-live="polite">
+        <span id="toast-text"></span>
+      </div>
+
+      <div id="star-whisper" class="star-whisper" aria-hidden="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8c.8 4.7 3.7 7.6 8.4 8.4-4.7.8-7.6 3.7-8.4 8.4-.8-4.7-3.7-7.6-8.4-8.4 4.7-.8 7.6-3.7 8.4-8.4Z" fill="currentColor"/></svg>
+        <span id="star-whisper-text">有流星，抬头看看</span>
+      </div>
+
+      <div id="drawer-scrim" class="drawer-scrim" aria-hidden="true"></div>
+      <aside
+        id="drawer"
+        class="drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="drawer-title"
+        aria-hidden="true"
+      >
+        <div class="drawer__grip" aria-hidden="true"><span></span></div>
+        <div class="drawer__head">
+          <div class="drawer__titles">
+            <p id="drawer-eyebrow" class="drawer__eyebrow">小屋</p>
+            <h2 id="drawer-title" class="drawer__title">坐一会儿</h2>
+          </div>
+          <button id="drawer-close" class="drawer__close" type="button" aria-label="收起面板">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div id="drawer-body" class="drawer__body"></div>
+        <div id="drawer-foot" class="drawer__foot"></div>
+      </aside>
+
+      <section id="splash" class="overlay splash" aria-label="小屋入口">
+        <div class="overlay__sky" aria-hidden="true">
+          <div id="splash-stars" class="splash-stars"></div>
+          <div class="splash-moon"></div>
+          <div class="splash-haze"></div>
+        </div>
+        <div class="silhouette silhouette--splash" aria-hidden="true">
+          <svg viewBox="0 0 1200 540" preserveAspectRatio="xMidYMax slice">
+            <defs>
+              <linearGradient id="hillA" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#1a2c47" /><stop offset="1" stop-color="#101c31" />
+              </linearGradient>
+              <filter id="windowGlow" x="-200%" y="-200%" width="400%" height="400%">
+                <feGaussianBlur stdDeviation="18" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="7" />
+              </filter>
+            </defs>
+            <path d="M0 388c122-42 206-35 318-3 125 36 205 12 310-20 114-35 214-39 322 2 86 33 167 22 250-4v177H0Z" fill="url(#hillA)" />
+            <g fill="#0c1728">
+              <path d="M90 386v-69l25-19 26 19v69Z" />
+              <path d="M67 317 115 281l49 36Z" />
+              <circle cx="115" cy="297" r="31" opacity=".55" />
+            </g>
+            <g transform="translate(392 214)">
+              <path d="M0 174h308v-81L154 0 0 93Z" fill="#0a1322" />
+              <path d="M-22 102 154-23l176 125-20 17L154-1 0 118Z" fill="#152337" />
+              <path d="M14 93h280v81H14Z" fill="#0c1728" />
+              <path d="M44 112h220v62H44Z" fill="#111e31" />
+              <path d="M46 125h56v36H46Z" fill="#ffbe73" filter="url(#windowGlow)" />
+              <path d="M47 126h54v34H47Z" fill="#ffc987" />
+              <path d="M73 126v34M47 143h54" stroke="#8f562b" stroke-width="2" opacity=".65" />
+              <path d="M232 112h30v62h-30Z" fill="#0a1321" />
+              <circle cx="243" cy="145" r="1.8" fill="#f2c887" />
+              <path d="M170 85V44h18v41" fill="#101d30" />
+              <path d="M148 38c9-15 30-19 43-7 13-8 32-2 35 12-8 9-20 12-32 6-12 8-32 5-46-11Z" fill="#1b2a3f" opacity=".9" />
+              <path d="M-9 177h326" stroke="#1b2b42" stroke-width="5" stroke-linecap="round" />
+            </g>
+            <g transform="translate(825 238)">
+              <path d="M50 155c9-37 2-82 8-119 3-15 17-24 25-17 8 8 5 27-4 37-7 7-11 23-6 49 1 6 8 26 7 50Z" fill="#0a1322" />
+              <path d="M68 77C45 58 26 56 3 58M72 68c22-15 41-23 62-20M67 100c-19 12-31 22-43 39M72 102c18-4 33-2 49 8M67 52C57 35 46 27 34 17" fill="none" stroke="#0a1322" stroke-width="9" stroke-linecap="round" />
+              <g fill="#3d2b3d" opacity=".93">
+                <circle cx="7" cy="47" r="32" /><circle cx="41" cy="22" r="43" /><circle cx="84" cy="12" r="33" /><circle cx="122" cy="26" r="45" /><circle cx="150" cy="48" r="29" />
+                <circle cx="28" cy="68" r="26" /><circle cx="103" cy="58" r="37" /><circle cx="143" cy="85" r="24" /><circle cx="62" cy="48" r="28" />
+              </g>
+              <g fill="#5c4055" opacity=".8">
+                <circle cx="24" cy="37" r="17" /><circle cx="64" cy="25" r="19" /><circle cx="113" cy="33" r="17" /><circle cx="143" cy="49" r="16" /><circle cx="86" cy="51" r="17" />
+              </g>
+              <g stroke="#9b7a67" stroke-width="1.4" opacity=".7">
+                <path d="M91 100v78M129 100v78" />
+              </g>
+              <path d="M84 177h58v8H84Z" fill="#0a1322" />
+              <path d="M76 177c5-25-12-36 10-50M147 177c-3-29 8-42-8-58" fill="none" stroke="#0a1322" stroke-width="3" opacity=".65" />
+            </g>
+            <path d="M0 489c153-14 292-2 418 6 154 10 236-18 388-13 168 6 262 23 394-7v65H0Z" fill="#081321" />
+            <g fill="#d9b478" opacity=".6">
+              <circle cx="684" cy="486" r="1.1" /><circle cx="718" cy="501" r=".9" /><circle cx="967" cy="492" r="1.2" /><circle cx="292" cy="503" r=".9" />
+            </g>
+          </svg>
+        </div>
+
+        <div class="splash__content">
+          <p class="splash__eyebrow">一间留给你的小屋</p>
+          <h1 class="splash__title">在这里，<br />你就是你自己。</h1>
+          <p class="splash__sub">慢慢来，随便坐坐。</p>
+          <button id="enter-btn" class="wood-button" type="button">
+            <span class="wood-button__grain" aria-hidden="true"></span>
+            <span class="wood-button__label">进来坐坐</span>
+            <span class="wood-button__arrow" aria-hidden="true">→</span>
+          </button>
+          <p class="splash__foot">不用准备什么，门开着。</p>
+        </div>
+      </section>
+
+      <section id="farewell" class="overlay farewell" aria-label="离开小屋" aria-hidden="true">
+        <div class="overlay__sky" aria-hidden="true">
+          <div id="farewell-stars" class="splash-stars"></div>
+          <div class="splash-moon splash-moon--farewell"></div>
+          <div class="splash-haze"></div>
+        </div>
+        <div class="silhouette silhouette--farewell" aria-hidden="true">
+          <svg viewBox="0 0 1200 540" preserveAspectRatio="xMidYMax slice">
+            <defs>
+              <linearGradient id="hillB" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#16253d" /><stop offset="1" stop-color="#0b1425" />
+              </linearGradient>
+              <filter id="farewellLamp" x="-300%" y="-300%" width="700%" height="700%">
+                <feGaussianBlur stdDeviation="16" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+            <path d="M0 410c140-37 242-29 347 0 105 28 201 10 294-16 131-37 234-30 345 5 77 24 147 16 214-4v145H0Z" fill="url(#hillB)" />
+            <g transform="translate(438 232)">
+              <path d="M0 162h300v-72L150 0 0 90Z" fill="#101a2b" />
+              <path d="M-20 97 150-17l170 114-18 15L150 3 2 112Z" fill="#1a273b" />
+              <path d="M14 90h272v72H14Z" fill="#0d1727" />
+              <path d="M42 109h216v53H42Z" fill="#111d2e" />
+              <path d="M58 122h44v29H58Z" fill="#ffc97d" filter="url(#farewellLamp)" opacity=".85" />
+              <path d="M59 123h42v27H59Z" fill="#ffd493" opacity=".88" />
+              <path d="M80 123v27M59 137h42" stroke="#8b5c35" stroke-width="1.5" opacity=".55" />
+              <path d="M223 109h24v53h-24Z" fill="#0b1421" />
+              <circle cx="235" cy="135" r="1.6" fill="#f2cd91" />
+              <path d="M306 98h-14v-30h14Z" fill="#141f31" />
+              <path d="M280 64c9-12 24-14 35-4 9-7 23-3 27 8-8 7-18 9-28 5-10 5-23 3-34-9Z" fill="#1d2b3f" />
+            </g>
+            <g transform="translate(845 278)" opacity=".9">
+              <path d="M45 120c8-36 2-72 5-105 2-13 15-20 22-13 7 7 4 22-4 31-6 7-8 19-4 43 1 6 7 23 6 44Z" fill="#0b1421" />
+              <path d="M63 52C42 35 27 33 7 36M66 47c18-14 34-19 52-16M61 78c-15 10-25 18-35 32M66 80c16-4 29-1 43 7" fill="none" stroke="#0b1421" stroke-width="8" stroke-linecap="round" />
+              <circle cx="14" cy="24" r="30" fill="#332738" opacity=".9" /><circle cx="55" cy="9" r="37" fill="#332738" opacity=".9" /><circle cx="104" cy="18" r="31" fill="#332738" opacity=".9" /><circle cx="126" cy="43" r="24" fill="#332738" opacity=".9" /><circle cx="35" cy="45" r="26" fill="#332738" opacity=".9" />
+            </g>
+            <path d="M0 505c164-12 298-2 426 8 160 12 251-17 394-12 152 5 247 16 380-8v47H0Z" fill="#07111e" />
+          </svg>
+        </div>
+        <div class="farewell__content">
+          <div class="farewell__lamp" aria-hidden="true">
+            <span class="farewell__lamp-glow"></span>
+            <span class="farewell__lamp-shade"></span>
+            <span class="farewell__lamp-stem"></span>
+            <span class="farewell__lamp-base"></span>
+          </div>
+          <p class="farewell__eyebrow">小屋的灯还亮着</p>
+          <h2 class="farewell__title">门没锁，<br />灯给你留着。</h2>
+          <p class="farewell__sub">随时都能回来看看。</p>
+          <p class="farewell__soft">这里一直都在。</p>
+          <div class="farewell__actions">
+            <button id="stay-btn" class="wood-button wood-button--quiet" type="button">
+              <span class="wood-button__label">再坐一会儿</span>
+            </button>
+            <button id="leave-btn" class="text-button" type="button">先走啦</button>
+          </div>
+        </div>
+      </section>
+
+      <div id="boot-veil" class="boot-veil" aria-hidden="true"></div>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
